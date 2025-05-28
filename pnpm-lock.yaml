@@ -224,6 +224,9 @@ importers:
       tailwind-merge:
         specifier: ^2.5.2
         version: 2.6.0
+      tailwindcss:
+        specifier: ^3.4.1
+        version: 3.4.17
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
@@ -282,9 +285,6 @@ importers:
       postcss:
         specifier: ^8
         version: 8.5.3
-      tailwindcss:
-        specifier: ^3.4.1
-        version: 3.4.17
       tsx:
         specifier: ^4.19.1
         version: 4.19.3
