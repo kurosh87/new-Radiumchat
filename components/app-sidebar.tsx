@@ -34,9 +34,14 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               }}
               className="flex flex-row gap-3 items-center"
             >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Chatbot
-              </span>
+              <div className="flex items-center gap-2 px-2 hover:bg-muted rounded-md cursor-pointer">
+                <span className="w-7 h-7 border-2 border-current flex items-end justify-center pb-0.5 text-xs font-bold">
+                  Ra
+                </span>
+                <span className="text-lg font-semibold">
+                  RadiumDeploy
+                </span>
+              </div>
             </Link>
             <Tooltip>
               <TooltipTrigger asChild>

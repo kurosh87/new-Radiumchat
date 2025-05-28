@@ -1,0 +1,347 @@
+# Radium Custom Model Integration
+
+## Overview
+This document describes the integration of a custom model from Radium's local LLM server into the chat application using the OpenAI Compatible Provider from the AI SDK. 
+
+## Model Endpoint Details
+- **Server URL**: http://llm-inference.radium.cloud:8001
+- **Authentication**: Bearer token (empty value)
+- **Model Path**: `/models/meta-llama/Llama-2-7b-chat-hf`
+
+### API Verification
+We've verified that the endpoint works with both regular and streaming chat completions:
+
+#### Regular Chat Completions
+```bash
+curl http://llm-inference.radium.cloud:8001/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer empty" \
+  -d '{"model": "/models/meta-llama/Llama-2-7b-chat-hf", "messages": [{"role": "user", "content": "Say this is a test"}], "temperature": 0, "max_tokens": 50}'
+```
+
+Response:
+```json
+{"id":"chatcmpl-c3bd60e895a14cb09d5fa526b3b43377","object":"chat.completion","created":1747445349,"model":"/models/meta-llama/Llama-2-7b-chat-hf","choices":[{"index":0,"message":{"role":"assistant","content":"  Sure! This is a test.","tool_calls":[]},"logprobs":null,"finish_reason":"stop","stop_reason":null}],"usage":{"prompt_tokens":13,"total_tokens":22,"completion_tokens":9,"prompt_tokens_details":null},"prompt_logprobs":null}
+```
+
+#### Streaming Chat Completions
+```bash
+curl -N http://llm-inference.radium.cloud:8001/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer empty" \
+  -d '{"model": "/models/meta-llama/Llama-2-7b-chat-hf", "messages": [{"role": "user", "content": "Count to 5"}], "temperature": 0, "max_tokens": 30, "stream": true}'
+```
+
+Response consists of SSE data chunks in the standard OpenAI format:
+```
+data: {"id":"chatcmpl-42a2ad749fe54a53b3e7832f2532ad87","object":"chat.completion.chunk","created":1747445356,"model":"/models/meta-llama/Llama-2-7b-chat-hf","choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-42a2ad749fe54a53b3e7832f2532ad87","object":"chat.completion.chunk","created":1747445356,"model":"/models/meta-llama/Llama-2-7b-chat-hf","choices":[{"index":0,"delta":{"content":" "},"logprobs":null,"finish_reason":null}]}
+
+...
+
+data: {"id":"chatcmpl-42a2ad749fe54a53b3e7832f2532ad87","object":"chat.completion.chunk","created":1747445356,"model":"/models/meta-llama/Llama-2-7b-chat-hf","choices":[{"index":0,"delta":{"content":""},"logprobs":null,"finish_reason":"stop","stop_reason":null}]}
+
+data: [DONE]
+```
+
+## Integration Steps
+
+### 1. Install Dependencies
+```bash
+npm install @ai-sdk/openai-compatible
+```
+
+### 2. Configure OpenAI Compatible Provider
+The OpenAI Compatible Provider from AI SDK allows interfacing with any API that implements the OpenAI API standard. We'll create a new provider for the Radium LLM server.
+
+```typescript
+// lib/ai/radium-provider.ts
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+
+// Define model IDs for better type safety and autocomplete
+type RadiumModelIds = 
+  | 'meta-llama/Llama-2-7b-chat-hf'
+  | (string & {});
+
+// Create the provider
+export const radiumProvider = createOpenAICompatible<
+  RadiumModelIds, // Chat model IDs
+  RadiumModelIds, // Completion model IDs (same in this case)
+  never           // No embedding models
+>({
+  name: 'radium-llm',
+  apiKey: 'empty', // Empty bearer token
+  baseURL: 'http://llm-inference.radium.cloud:8001/v1',
+});
+```
+
+### 3. Add the Model to Models Registry
+```typescript
+// lib/ai/models.ts
+export const chatModels: Array<ChatModel> = [
+  {
+    id: 'chat-model',
+    name: 'Chat model',
+    description: 'Primary model for all-purpose chat',
+  },
+  {
+    id: 'chat-model-reasoning',
+    name: 'Reasoning model',
+    description: 'Uses advanced reasoning',
+  },
+  {
+    id: 'radium-llama-2',
+    name: 'Radium Llama 2',
+    description: 'Locally hosted Llama 2 7B model',
+  },
+];
+```
+
+### 4. Update Schema Validation
+```typescript
+// app/(chat)/api/chat/schema.ts
+export const postRequestBodySchema = z.object({
+  // ...existing properties
+  selectedChatModel: z.enum(['chat-model', 'chat-model-reasoning', 'radium-llama-2']),
+  // ...other properties
+});
+```
+
+### 5. Update Entitlements
+```typescript
+// lib/ai/entitlements.ts
+export const entitlementsByUserType: Record<UserType, Entitlements> = {
+  guest: {
+    maxMessagesPerDay: 20,
+    availableChatModelIds: ['chat-model', 'chat-model-reasoning', 'radium-llama-2'],
+  },
+  regular: {
+    maxMessagesPerDay: 100,
+    availableChatModelIds: ['chat-model', 'chat-model-reasoning', 'radium-llama-2'],
+  },
+};
+```
+
+### 6. Integrate Provider with Existing Structure
+```typescript
+// lib/ai/providers.ts
+import { radiumProvider } from './radium-provider';
+
+export const myProvider = isTestEnvironment
+  ? customProvider({
+      // ... existing test providers
+    })
+  : customProvider({
+      languageModels: {
+        'chat-model': xai('grok-2-vision-1212'),
+        'chat-model-reasoning': wrapLanguageModel({
+          model: xai('grok-3-mini-beta'),
+          middleware: extractReasoningMiddleware({ tagName: 'think' }),
+        }),
+        'title-model': xai('grok-2-1212'),
+        'artifact-model': xai('grok-2-1212'),
+        'radium-llama-2': radiumProvider.chatModel('meta-llama/Llama-2-7b-chat-hf'),
+      },
+      imageModels: {
+        'small-model': xai.image('grok-2-image'),
+      },
+    });
+```
+
+### 7. Error Handling
+Implement error handling for when the Radium LLM server is unavailable:
+
+```typescript
+// Example error handling in api route
+try {
+  // Attempt to use model
+} catch (error) {
+  console.error('Error accessing Radium LLM:', error);
+  // Fallback to a different model
+  // Or return appropriate error response
+}
+```
+
+## Implementation Details
+
+### Files Modified
+- `lib/ai/radium-provider.ts` - Created new file for the Radium provider
+- `lib/ai/models.ts` - Added the new model to the chat models list
+- `lib/ai/providers.ts` - Integrated the Radium provider
+- `app/(chat)/api/chat/schema.ts` - Updated schema validation
+- `lib/ai/entitlements.ts` - Added the model to available entitlements
+- `lib/ai/error-handling.ts` - Added error handling utilities
+
+### Provider Configuration
+The provider is configured to use an empty bearer token for authentication as required by the Radium LLM server, with a critical custom fetch handler to ensure streaming works properly:
+
+```typescript
+export const radiumProvider = createOpenAICompatible<
+  RadiumModelIds, // Chat model IDs
+  RadiumModelIds, // Completion model IDs (same in this case)
+  never,          // No embedding models
+  never           // No tokenizers
+>({
+  name: 'radium-llm',
+  apiKey: 'empty', // Empty bearer token
+  baseURL: 'http://llm-inference.radium.cloud:8001/v1',
+  // Add custom fetch implementation to fix streaming issues
+  fetch: async (url, initOptions) => {
+    // Make sure stream parameter is always included for chat completions
+    let modifiedInit = { ...initOptions };
+    
+    if (url.toString().includes('/chat/completions')) {
+      try {
+        const body = modifiedInit?.body ? JSON.parse(modifiedInit.body.toString()) : {};
+        // Ensure stream is true for chat completions
+        if (!body.stream) {
+          body.stream = true;
+          modifiedInit = {
+            ...modifiedInit,
+            body: JSON.stringify(body),
+          };
+        }
+      } catch (error) {
+        console.error('Error parsing request body:', error);
+      }
+    }
+    // Use the global fetch with the potentially modified init
+    return fetch(url, modifiedInit);
+  },
+});
+```
+
+### Error Handling Implementation
+We implemented a fallback mechanism to handle cases where the Radium LLM server might be unavailable:
+
+```typescript
+export function handleRadiumModelError(
+  error: unknown, 
+  fallbackModelId = 'chat-model'
+): { 
+  message: string;
+  fallbackToModel: string;
+  originalError: unknown;
+} {
+  console.error('Error using Radium LLM model:', error);
+  
+  const isConnectionError = error instanceof Error && 
+    (error.message.includes('ECONNREFUSED') || 
+     error.message.includes('ETIMEDOUT') ||
+     error.message.includes('Failed to fetch'));
+  
+  // Check for authentication errors in the error message
+  const isAuthError = error instanceof Error && 
+    error.message.includes('authentication');
+  
+  let message = 'An error occurred with the Radium LLM model.';
+  
+  if (isConnectionError) {
+    message = 'Unable to connect to the Radium LLM server. Falling back to default model.';
+  } else if (isAuthError) {
+    message = 'Authentication error with Radium LLM server. Falling back to default model.';
+  }
+  
+  return {
+    message,
+    fallbackToModel: fallbackModelId,
+    originalError: error,
+  };
+}
+```
+
+## Usage Examples
+
+### Direct Usage
+Use the provider directly for text generation:
+
+```typescript
+import { generateText } from 'ai';
+import { radiumProvider } from '@/lib/ai/radium-provider';
+
+const testRadiumModel = async () => {
+  try {
+    const response = await generateText({
+      model: radiumProvider.chatModel('meta-llama/Llama-2-7b-chat-hf'),
+      prompt: 'Hello, how are you?'
+    });
+    console.log(response.text);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
+
+### Using with Error Handling
+Implement error handling with fallback:
+
+```typescript
+import { generateText } from 'ai';
+import { radiumProvider } from '@/lib/ai/radium-provider';
+import { handleRadiumModelError } from '@/lib/ai/error-handling';
+import { myProvider } from '@/lib/ai/providers';
+
+const generateWithFallback = async (prompt: string) => {
+  try {
+    return await generateText({
+      model: radiumProvider.chatModel('meta-llama/Llama-2-7b-chat-hf'),
+      prompt
+    });
+  } catch (error) {
+    const { message, fallbackToModel } = handleRadiumModelError(error);
+    console.warn(message);
+    
+    // Fall back to default model
+    return await generateText({
+      model: myProvider.languageModel(fallbackToModel),
+      prompt
+    });
+  }
+};
+```
+
+## Troubleshooting
+- If connection fails, verify the Radium LLM server is running
+- Check that the model path is correct (`/models/meta-llama/Llama-2-7b-chat-hf`)
+- Verify network connectivity to the server
+- Check the browser console for error messages
+- Ensure the authentication token is correctly set to 'empty'
+- **If streaming doesn't work**, make sure your provider configuration includes the custom fetch handler to force `stream: true` for chat completion requests (see Provider Configuration above)
+
+## Lessons
+
+### Streaming Fix for Custom Models
+When integrating custom OpenAI-compatible models, ensure the `stream` parameter is explicitly set to `true` in chat completion requests. The AI SDK may not always set this parameter correctly with custom providers.
+
+Implement a custom fetch handler in your provider configuration to intercept requests and enforce streaming:
+
+```typescript
+fetch: async (url, initOptions) => {
+  let modifiedInit = { ...initOptions };
+  
+  if (url.toString().includes('/chat/completions')) {
+    try {
+      const body = modifiedInit?.body ? JSON.parse(modifiedInit.body.toString()) : {};
+      if (!body.stream) {
+        body.stream = true;
+        modifiedInit = {
+          ...modifiedInit,
+          body: JSON.stringify(body),
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+    }
+  }
+  return fetch(url, modifiedInit);
+}
+```
+
+This ensures consistent streaming behavior across different models in your application.
+
+## Future Enhancements
+- Add additional model options from the Radium LLM server
+- Implement model parameter controls (temperature, max tokens, etc.)
+- Add caching for improved performance
+- Implement monitoring to track model usage and performance

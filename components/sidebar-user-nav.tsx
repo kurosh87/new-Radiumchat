@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, CreditCard, Sun, Moon, LogOut, LogIn } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut, useSession } from 'next-auth/react';
@@ -76,7 +76,17 @@ export function SidebarUserNav({ user }: { user: User }) {
               className="cursor-pointer"
               onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
+              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               {`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              data-testid="user-nav-item-billing"
+              className="cursor-pointer flex items-center gap-2"
+              onSelect={() => router.push('/billing')}
+            >
+              <CreditCard className="h-4 w-4" />
+              Billing & Payments
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
@@ -103,7 +113,13 @@ export function SidebarUserNav({ user }: { user: User }) {
                   }
                 }}
               >
-                {isGuest ? 'Login to your account' : 'Sign out'}
+                {isGuest ? <>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login to your account
+                </> : <>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
+                </>}
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>

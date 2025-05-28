@@ -11,6 +11,7 @@ import {
   reasoningModel,
   titleModel,
 } from './models.test';
+import { radiumProvider } from './radium-provider';
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -30,6 +31,7 @@ export const myProvider = isTestEnvironment
         }),
         'title-model': xai('grok-2-1212'),
         'artifact-model': xai('grok-2-1212'),
+        'radium-llama-2': radiumProvider.chatModel('/models/meta-llama/Llama-2-7b-chat-hf'),
       },
       imageModels: {
         'small-model': xai.image('grok-2-image'),

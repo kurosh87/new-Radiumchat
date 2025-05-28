@@ -17,4 +17,9 @@ export const chatModels: Array<ChatModel> = [
     name: 'Reasoning model',
     description: 'Uses advanced reasoning',
   },
+  {
+    id: 'radium-llama-2',
+    name: 'Radium Llama 2',
+    description: 'Locally hosted Llama 2 7B chat model',
+  },
 ];
