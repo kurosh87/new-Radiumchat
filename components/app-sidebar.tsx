@@ -39,7 +39,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   Ra
                 </span>
                 <span className="text-lg font-semibold">
-                  RadiumDeploy
+                  RadiumChat
                 </span>
               </div>
             </Link>

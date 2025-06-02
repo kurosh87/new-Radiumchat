@@ -74,8 +74,7 @@ function PureChatHeader({
       )}
 
       <Link
-        href="#"
-        target="_noblank"
+        href="/deploy"
         className="hidden md:block order-4 md:ml-auto"
       >
         <RainbowButton className="flex items-center gap-2 text-sm py-1.5 h-8 px-4 rounded-md">
