@@ -274,7 +274,7 @@ export default function DeployHomePage() {
                 <CardContent>
                   <h3 className="font-semibold mb-1">Docs</h3>
                   <p className="text-sm text-muted-foreground">
-                    Guides & how-to's
+                    Guides &amp; how-to&apos;s
                   </p>
                 </CardContent>
               </Card>
@@ -316,7 +316,7 @@ export default function DeployHomePage() {
               <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-amber-900 dark:text-amber-100">
-                  What's New: The Official Llama API, accelerated by Radium Deploy. The
+                  What&apos;s New: The Official Llama API, accelerated by Radium. The
                   fastest, lowest-cost way to run Llama.{' '}
                   <Link href="/deploy/docs" className="underline">
                     Learn more
@@ -361,7 +361,7 @@ export default function DeployHomePage() {
 
             <div className="text-center py-4">
               <p className="text-sm text-muted-foreground">
-                We're adding new models all the time and will let you know when
+                We&apos;re adding new models all the time and will let you know when
                 a new one comes online.
               </p>
               <p className="text-sm text-muted-foreground mt-1">

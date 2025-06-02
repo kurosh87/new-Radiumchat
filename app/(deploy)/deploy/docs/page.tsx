@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SidebarToggle } from '@/components/sidebar-toggle';
@@ -15,9 +17,9 @@ export default function DocsPage() {
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">RadiumDeploy Documentation</h2>
+            <h2 className="text-2xl font-bold mb-2">Radium Documentation</h2>
             <p className="text-muted-foreground">
-              Learn how to deploy and manage AI models with RadiumDeploy.
+              Learn how to deploy and manage AI models with Radium.
             </p>
           </div>
 

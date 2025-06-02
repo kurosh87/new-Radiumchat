@@ -15,7 +15,7 @@ const plans = [
     price: '$0',
     current: true,
     features: [
-      'Build and Test on Radium Deploy',
+      'Build and Test on Radium',
       'Community Support',
     ],
     ctaText: 'Current Plan',

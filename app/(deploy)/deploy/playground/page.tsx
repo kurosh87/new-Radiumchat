@@ -49,9 +49,9 @@ export default function PlaygroundPage() {
   const [systemMessage, setSystemMessage] = useState('');
   const [userMessage, setUserMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [code, setCode] = useState(`from radium import RadiumDeploy
+  const [code, setCode] = useState(`from radium import Radium
 
-client = RadiumDeploy()
+client = Radium()
 completion = client.chat.completions.create(
     model="meta-llama/llama-4-scout-17b-16e-instruct",
     messages=[
@@ -95,9 +95,9 @@ for chunk in completion:
             "content": "${msg.content.replace(/"/g, '\\"')}"
         }`).join(',\n');
 
-    const newCode = `from radium import RadiumDeploy
+    const newCode = `from radium import Radium
 
-client = RadiumDeploy()
+client = Radium()
 completion = client.chat.completions.create(
     model="${selectedModel}",
     messages=[

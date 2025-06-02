@@ -8,8 +8,8 @@ import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'RadiumChat',
-  description: 'Next.js AI chat application with RadiumChat.',
+  title: 'Radium',
+  description: 'Next.js AI application with Radium.',
 };
 
 export const viewport = {

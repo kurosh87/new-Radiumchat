@@ -16,7 +16,7 @@ import {
 import { MoreHorizontal, ArrowUpDown, Plus, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '../../../components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +24,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+} from '../../../components/ui/dropdown-menu';
+import { Input } from '../../../components/ui/input';
 import {
   Table,
   TableBody,
@@ -33,9 +33,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { SidebarToggle } from '@/components/sidebar-toggle';
+} from '../../../components/ui/table';
+import { Badge } from '../../../components/ui/badge';
+import { SidebarToggle } from '../../../components/sidebar-toggle';
 
 // Mock data for deployments
 type Deployment = {

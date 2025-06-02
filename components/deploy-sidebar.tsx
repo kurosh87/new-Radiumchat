@@ -91,7 +91,7 @@ export function DeploySidebar({ user }: { user: User | undefined }) {
                 <span className="w-7 h-7 border-2 border-current flex items-end justify-center pb-0.5 text-xs font-bold">
                   Ra
                 </span>
-                <span className="font-semibold text-lg">RadiumDeploy</span>
+                <span className="font-semibold text-lg">Radium</span>
               </Link>
             </div>
           </SidebarMenuItem>
@@ -131,7 +131,7 @@ export function DeploySidebar({ user }: { user: User | undefined }) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t">
-        <SidebarUserNav user={user} />
+        {user && <SidebarUserNav user={user} />}
       </SidebarFooter>
     </Sidebar>
   );
